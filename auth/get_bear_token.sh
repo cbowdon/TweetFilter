@@ -21,7 +21,7 @@ host="Host: api.twitter.com"
 auth="Authorization: Basic "$enc_cred
 body="grant_type=client_credentials"
 
-curl --url x$token_url \
+curl --url $token_url \
     --header "$auth" \
     --header "$content_type" \
     --request "POST" \
