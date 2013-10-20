@@ -9,6 +9,10 @@ compile:
 		--haddock-executables \
 		--disable-documentation \
 		--ghc-option=-Wall
+	hlint *.hs
+
+run:
+	cabal run
 
 clean:
 	rm -f *.o *.hi

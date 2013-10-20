@@ -1,17 +1,24 @@
 {-# LANGUAGE OverloadedStrings, DeriveGeneric #-}
 
-module TwitterTypes where
+module TwitterTypes
+( Token(..)
+, User(..)
+, Tweet(..)
+, Tweets(..)
+) where
 
-import Data.Aeson (FromJSON(..))
+import Control.Applicative
+import Control.Monad
+import Data.Aeson
 import GHC.Generics
 
-data Token = Token  { access_token :: String
-                    , token_type :: String
+data Token = Token  { accessToken :: String
+                    , tokenType :: String
                     } deriving (Show, Generic)
 
-data User = User    { id :: Integer
+data User = User    { id :: String
                     , name :: String
-                    , screen_name :: String
+                    , screenName :: String
                     } deriving (Show, Generic)
 
 data Tweet = Tweet  { text :: String
@@ -21,8 +28,18 @@ data Tweet = Tweet  { text :: String
 data Tweets = Tweets    { statuses :: [Tweet]
                         } deriving (Show, Generic)
 
-instance FromJSON Token
-instance FromJSON User
+instance FromJSON Token where
+    parseJSON (Object v) =
+        Token   <$> (v .: "access_token")
+                <*> (v .: "token_type")
+    parseJSON _         = mzero
+
+instance FromJSON User where
+    parseJSON (Object v) =
+        User    <$> (v .: "id_str")
+                <*> (v .: "name")
+                <*> (v .: "screen_name")
+    parseJSON _         = mzero
+
 instance FromJSON Tweet
 instance FromJSON Tweets
-
