@@ -1,13 +1,12 @@
 import Control.Monad
 import Data.Conduit
-import Data.Conduit.Binary (sinkFile)
 import Network.HTTP.Conduit
 import TwitterTypes
 import Store
+import Store.Connection
+import Store.Test
 import Data.Aeson (eitherDecode)
 import qualified Data.ByteString.Lazy as BL
-{- import qualified Data.ByteString.Lazy.Char8 as BS (pack) -}
--- TODO cleaning
 
 main :: IO ()
 main = do

@@ -10,23 +10,25 @@ module TwitterTypes
 import Control.Applicative
 import Control.Monad
 import Data.Aeson
+import Database.HDBC
 import GHC.Generics
+import Store
 
 data Token = Token  { accessToken :: String
                     , tokenType :: String
-                    } deriving (Show, Generic)
+                    } deriving (Eq, Show, Generic)
 
-data User = User    { id :: String
+data User = User    { uid :: String
                     , name :: String
                     , screenName :: String
-                    } deriving (Show, Generic)
+                    } deriving (Eq, Show, Generic)
 
 data Tweet = Tweet  { text :: String
                     , user:: User
-                    } deriving (Show, Generic)
+                    } deriving (Eq, Show, Generic)
 
 data Tweets = Tweets    { statuses :: [Tweet]
-                        } deriving (Show, Generic)
+                        } deriving (Eq, Show, Generic)
 
 instance FromJSON Token where
     parseJSON (Object v) =
@@ -43,3 +45,16 @@ instance FromJSON User where
 
 instance FromJSON Tweet
 instance FromJSON Tweets
+
+instance ToSQL Token where
+    prepSQL (Token at tt)   = [toSql at, toSql tt]
+
+instance FromSQL Token where
+    parseSQL [at, tt]   = Just $ Token (fromSql at) (fromSql tt)
+    parseSQL _          = Nothing
+
+instance ToSQL User where
+    prepSQL (User i n sn) = [toSql i, toSql n, toSql sn]
+
+instance FromSQL User where
+    parseSQL [i, n, sn] = Just $ User (fromSql i) (fromSql n) (fromSql sn)
