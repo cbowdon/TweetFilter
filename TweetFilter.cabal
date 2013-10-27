@@ -57,7 +57,16 @@ executable TweetFilter
   -- other-extensions:
 
   -- Other library packages from which modules are imported.
-  build-depends:       base >=4.6 && <4.7, conduit >= 1.0.8, bytestring >= 0.10.0.2, aeson >= 0.6.2.0, http-conduit >= 1.9.5.1, HDBC >= 2.3.1.2, HDBC-sqlite3 >= 2.3.3.0, QuickCheck >= 2.6
+  build-depends:       base >=4.6 && <4.7
+    , conduit >= 1.0.8
+    , bytestring >= 0.10.0.2
+    , aeson >= 0.6.2.0
+    , http-conduit >= 1.9.5.1
+    , HDBC >= 2.3.1.2
+    , HDBC-sqlite3 >= 2.3.3.0
+    , QuickCheck >= 2.6
+    , transformers >= 0.3.0.0
+    , mtl >= 2.1.2
 
   -- Directories containing source files.
   -- hs-source-dirs:

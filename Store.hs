@@ -6,6 +6,8 @@ module Store
 , SQLExpr(..)
 ) where
 
+import Control.Monad.Trans
+import Control.Monad.Trans.Maybe
 import Database.HDBC
 import Store.Connection
 
@@ -20,11 +22,11 @@ class FromSQL a where
     parseSQL _ = Nothing
 
 persist :: (IConnection c, ToSQL a) => c -> SQLExpr -> a -> IO Integer
-persist conn (SQLExpr stmt params) item =
-    withTransaction conn $ \c -> run c stmt $ prepSQL item ++ params
+persist conn (SQLExpr stmt pms) a =
+    withTransaction conn $ \c -> run c stmt $ prepSQL a ++ pms
 
 retrieve :: (IConnection c, FromSQL a) => c -> SQLExpr -> IO (Maybe [a])
-retrieve conn (SQLExpr stmt params) =
-    withTransaction conn $ \c -> do
-        items <- quickQuery' c stmt params
-        return . mapM parseSQL $ items
+retrieve conn (SQLExpr stmt pms) =
+        withTransaction conn $ \c -> do
+            items <- quickQuery' c stmt pms
+            return . mapM parseSQL $ items

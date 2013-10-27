@@ -1,6 +1,5 @@
 drop table if exists Token;
 create table Token (
-    id              integer primary key autoincrement,
     access_token    varchar(255) not null,
     token_type      varchar(255) not null
 );

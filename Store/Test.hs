@@ -9,10 +9,7 @@ import Test.QuickCheck
 import Test.QuickCheck.Monadic
 
 randomString :: Gen String
-randomString = do
-    n <- randomInt
-    s <- listOf1 randomChar
-    return s
+randomString = listOf1 randomChar
 
 randomChar = elements $ ['A'..'Z'] ++ ['a'..'z'] ++ ['0'..'9']
 randomInt = elements [0..64]
@@ -42,7 +39,9 @@ selection c t = do
 
 prop_selection :: IConnection c => c -> Token -> Property
 prop_selection c t = monadicIO $ do
-    result <- run $ selection c t
+    result <- run $ do
+        x <- selectToken c t
+        selection c t
     assert result
 
 prop_insertion :: IConnection c => c -> Token -> Property
