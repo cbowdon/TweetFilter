@@ -13,10 +13,12 @@ data SQLExpr = SQLExpr  { statement :: String
 
 class ToSQL a where
     prepSQL :: a -> [SqlValue]
+    insert :: IConnection c => c -> a -> IO Integer
 
 class FromSQL a where
     parseSQL :: [SqlValue] -> Maybe a
     parseSQL _ = Nothing
+    select :: IConnection c => c -> a -> IO (Maybe [a])
 
 persist :: (IConnection c, ToSQL a) => c -> SQLExpr -> a -> IO Integer
 persist conn (SQLExpr stmt pms) a =
