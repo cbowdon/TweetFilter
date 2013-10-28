@@ -91,8 +91,10 @@ data Tweet = Tweet  { text :: String
 instance FromJSON Tweet
 
 instance ToSQL Tweet where
-    prepSQL (Tweet t u) = toSql t : prepSQL u
-    insert c = persist c $ SQLExpr "insert into Tweet (text, user_id) values (?, ?)" []
+    prepSQL (Tweet t u) = [toSql t, toSql $ uid u]
+    insert c tweet = do
+        _ <- insert c $ user tweet
+        persist c (SQLExpr "insert into Tweet (text, user_id) values (?, ?)" []) tweet
 
 instance FromSQL Tweet where
     parseSQL (t:u)  = parseSQL u >>= Just . Tweet (fromSql t)

@@ -6,3 +6,4 @@ main :: IO ()
 main = do
     testToken
     testUser
+    testTweet
