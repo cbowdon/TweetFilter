@@ -7,7 +7,6 @@ module Store
 ) where
 
 import Database.HDBC
-import Store.Connection
 
 data SQLExpr = SQLExpr  { statement :: String
                         , parameters :: [SqlValue] }
