@@ -1,7 +1,8 @@
 {-# LANGUAGE OverloadedStrings, DeriveGeneric #-}
-
+-- | Types associated with the Twitter Search API
 module TwitterTypes
-( Token(..)
+( -- * Types
+Token(..)
 , User(..)
 , Tweet(..)
 , Tweets(..)
@@ -20,7 +21,7 @@ randomString = listOf1 randomChar
     where
         randomChar = elements $ ['A'..'Z'] ++ ['a'..'z'] ++ ['0'..'9']
 
-
+-- | An authentication token from Twitter
 data Token = Token  { accessToken :: String
                     , tokenType :: String
                     } deriving (Eq, Show, Generic)
@@ -46,6 +47,7 @@ instance Arbitrary Token where
         tt <- randomString
         return $ Token at tt
 
+-- | A Twitter user
 data User = User    { uid :: String
                     , name :: String
                     , screenName :: String
@@ -61,12 +63,18 @@ instance FromJSON User where
 
 instance ToSQL User where
     prepSQL (User i n sn) = [toSql i, toSql n, toSql sn]
-    insert c = persist c (SQLExpr "insert into User (id, name, screen_name) values (?, ?, ?)" [])
+    insert c = persist c $ SQLExpr "insert into User (id, name, screen_name) values (?, ?, ?)" []
 
 instance FromSQL User where
     parseSQL [i, n, sn] = Just $ User (fromSql i) (fromSql n) (fromSql sn)
     parseSQL _          = Nothing
-    select c u = retrieve c (SQLExpr "select * from User where id = ? and name = ? and screen_name = ?" (prepSQL u))
+    select c u = retrieve c $ SQLExpr query (prepSQL u)
+        where
+            query = "select * \
+                    \from    User \
+                    \where   id = ? \
+                        \and name = ? \
+                        \and screen_name = ?"
 
 instance Arbitrary User where
     arbitrary = do
@@ -75,11 +83,30 @@ instance Arbitrary User where
         sn <- randomString
         return $ User u n sn
 
+-- | Core information in a Tweet: the text content and the user
 data Tweet = Tweet  { text :: String
                     , user:: User
                     } deriving (Eq, Show, Generic)
 
 instance FromJSON Tweet
+
+instance ToSQL Tweet where
+    prepSQL (Tweet t u) = toSql t : prepSQL u
+    insert c = persist c $ SQLExpr "insert into Tweet (text, user_id) values (?, ?)" []
+
+instance FromSQL Tweet where
+    parseSQL (t:u)  = parseSQL u >>= Just . Tweet (fromSql t)
+    parseSQL _      = Nothing
+    select c t = retrieve c $ SQLExpr query (prepSQL t)
+        where
+            query = "select * \
+                    \from    Tweet as T \
+                    \join    User as U \
+                        \on  T.user_id = U.id \
+                    \where   T.text = ? \
+                        \and U.id = ? \
+                        \and U.name = ? \
+                        \and U.screen_name = ?"
 
 instance Arbitrary Tweet where
     arbitrary = do
@@ -87,6 +114,7 @@ instance Arbitrary Tweet where
         u <- arbitrary :: Gen User
         return $ Tweet t u
 
+-- | A collection of Tweets (provided for JSON compatibility)
 data Tweets = Tweets    { statuses :: [Tweet]
                         } deriving (Eq, Show, Generic)
 

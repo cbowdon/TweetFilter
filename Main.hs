@@ -1,3 +1,6 @@
+-- | Download tweets, store in database and generate Bayesian filter
+module Main where
+
 import Control.Monad
 import Data.Conduit
 import Network.HTTP.Conduit
@@ -8,6 +11,7 @@ import Store.Test
 import Data.Aeson (eitherDecode)
 import qualified Data.ByteString.Lazy as BL
 
+-- | Download tweets, store in database and generate Bayesian filter
 main :: IO ()
 main = do
     token <- BL.readFile "/home/chris/Tweet/auth/bear_token.json"

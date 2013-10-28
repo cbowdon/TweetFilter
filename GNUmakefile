@@ -11,12 +11,16 @@ compile:
 		--disable-documentation \
 		--ghc-option=-Wall
 	make lint
+	make doc
 
 run:
 	cabal run
 
 lint:
 	hlint *.hs Store/*.hs
+
+doc:
+	cabal haddock --executables
 
 clean:
 	rm -f *.o *.hi Store/*.o Store/*.hi

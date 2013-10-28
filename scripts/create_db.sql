@@ -6,8 +6,8 @@ create table Token (
 
 drop table if exists User;
 create table User (
-    id              varchar(255) unique not null,
-    name            varchar(255) unique not null,
+    id              varchar(255) primary key unique not null,
+    name            varchar(255) not null,
     screen_name     varchar(255) not null
 );
 
