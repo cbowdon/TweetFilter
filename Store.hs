@@ -6,8 +6,6 @@ module Store
 , SQLExpr(..)
 ) where
 
-import Control.Monad.Trans
-import Control.Monad.Trans.Maybe
 import Database.HDBC
 import Store.Connection
 

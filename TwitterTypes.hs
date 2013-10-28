@@ -58,3 +58,4 @@ instance ToSQL User where
 
 instance FromSQL User where
     parseSQL [i, n, sn] = Just $ User (fromSql i) (fromSql n) (fromSql sn)
+    parseSQL _          = Nothing

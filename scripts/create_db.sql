@@ -6,7 +6,7 @@ create table Token (
 
 drop table if exists User;
 create table User (
-    id              integer primary key autoincrement,
+    id              varchar(255) unique not null,
     name            varchar(255) unique not null,
     screen_name     varchar(255) not null
 );
