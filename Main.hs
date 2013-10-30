@@ -1,3 +1,4 @@
+{-# LANGUAGE OverloadedStrings #-}
 -- | Download tweets, store in database and generate Bayesian filter
 module Main where
 
@@ -23,7 +24,11 @@ main = do
             let req' = req {
                 requestHeaders = [(hAuthorization, BC.pack $ "Bearer " ++ accessToken token)]
             }
-            -- print (requestHeaders req')
             res <- withManager $ httpLbs req'
             print res
-            print "Done"
+            let body = eitherDecode $ responseBody res :: Either String Tweets
+            case body of
+                Left err        -> print err
+                Right tweets    -> withConnection $ \conn -> do
+                    mapM_ (insert conn) $ statuses tweets
+                    print tweets
