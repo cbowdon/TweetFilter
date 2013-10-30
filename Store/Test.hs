@@ -48,5 +48,6 @@ testUser = withConnection $ \conn -> do
 
 -- | Check saving and loading tweets
 testTweet :: IO ()
-testTweet = withConnection  $ \conn ->
-    quickCheck (prop_parseTest :: Tweet -> Bool)
+testTweet = withConnection  $ \conn -> do
+    quickCheck (prop insertTest conn :: Tweet -> Property)
+    quickCheck (prop selectTest conn :: Tweet -> Property)

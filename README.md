@@ -27,6 +27,14 @@
 - You can do HTTPS with the _http-conduit_ package.
 - Aeson seems to be the least-painful JSON handling library available.
 
-## Aeson
+### Aeson
 - If you can tolerate using the JSON key names in your data type, using the _DeriveGenerics_ extension takes away a lot of boilerplate by creating your instances for you.
 - Use _eitherDecode_ rather than _decode_ to get error messages when it fails.
+
+### Bayesian filtering
+- countBad: total times it appears in bad (spam) messages
+- rBad: countBad / total bad words
+- pSpam: rBad / (rBad + rGood) [bounded to 1% and 99%]
+- 'interestingness': abs(pSpam - 0.5)
+- combined prob of n interesting words: ||pSpam / (||pSpam + ||(1-pSpam)) where || is product
+- See Paul Graham's essay, or Daniel Shiffman's

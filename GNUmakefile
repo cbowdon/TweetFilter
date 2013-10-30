@@ -23,7 +23,7 @@ doc:
 	cabal haddock --executables
 
 clean:
-	rm -f *.o *.hi Store/*.o Store/*.hi
+	rm -f *.o *.hi Store/*.o Store/*.hi Store/Raw/*.o Store/Raw/*.hi
 	rm -rf $(DIST)
 
 db:

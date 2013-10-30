@@ -15,6 +15,8 @@ import Database.HDBC
 import GHC.Generics
 import Test.QuickCheck
 import Store
+import qualified Store.Raw.Insert as Insert
+import qualified Store.Raw.Select as Select
 
 randomString :: Gen String
 randomString = listOf1 randomChar
@@ -34,12 +36,12 @@ instance FromJSON Token where
 
 instance ToSQL Token where
     prepSQL (Token at tt)   = [toSql at, toSql tt]
-    insert c = persist c (SQLExpr "insert into Token (access_token, token_type) values (?, ?)" [])
+    insert c = persist c (SQLExpr Insert.token [])
 
 instance FromSQL Token where
     parseSQL [at, tt]   = Just $ Token (fromSql at) (fromSql tt)
     parseSQL _          = Nothing
-    select c t = retrieve c (SQLExpr "select * from Token where access_token = ? and token_type = ?" (prepSQL t))
+    select c t = retrieve c (SQLExpr Select.token (prepSQL t))
 
 instance Arbitrary Token where
     arbitrary = do
@@ -63,18 +65,12 @@ instance FromJSON User where
 
 instance ToSQL User where
     prepSQL (User i n sn) = [toSql i, toSql n, toSql sn]
-    insert c = persist c $ SQLExpr "insert into User (id, name, screen_name) values (?, ?, ?)" []
+    insert c = persist c $ SQLExpr Insert.user []
 
 instance FromSQL User where
     parseSQL [i, n, sn] = Just $ User (fromSql i) (fromSql n) (fromSql sn)
     parseSQL _          = Nothing
-    select c u = retrieve c $ SQLExpr query (prepSQL u)
-        where
-            query = "select * \
-                    \from    User \
-                    \where   id = ? \
-                        \and name = ? \
-                        \and screen_name = ?"
+    select c u = retrieve c $ SQLExpr Select.user (prepSQL u)
 
 instance Arbitrary User where
     arbitrary = do
@@ -94,21 +90,12 @@ instance ToSQL Tweet where
     prepSQL (Tweet t u) = [toSql t, toSql $ uid u]
     insert c tweet = do
         _ <- insert c $ user tweet
-        persist c (SQLExpr "insert into Tweet (text, user_id) values (?, ?)" []) tweet
+        persist c (SQLExpr Insert.tweet []) tweet
 
 instance FromSQL Tweet where
     parseSQL (t:u)  = parseSQL u >>= Just . Tweet (fromSql t)
     parseSQL _      = Nothing
-    select c t = retrieve c $ SQLExpr query (prepSQL t)
-        where
-            query = "select * \
-                    \from    Tweet as T \
-                    \join    User as U \
-                        \on  T.user_id = U.id \
-                    \where   T.text = ? \
-                        \and U.id = ? \
-                        \and U.name = ? \
-                        \and U.screen_name = ?"
+    select c t = retrieve c $ SQLExpr Select.tweet (prepSQL t)
 
 instance Arbitrary Tweet where
     arbitrary = do

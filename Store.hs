@@ -8,6 +8,9 @@ SQLExpr(..)
 -- * Functions
 , persist
 , retrieve
+-- * Re-exported functions
+, toSql
+, fromSql
 ) where
 
 import Database.HDBC
