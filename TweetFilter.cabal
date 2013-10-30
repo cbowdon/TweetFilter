@@ -67,6 +67,7 @@ executable TweetFilter
     , QuickCheck >= 2.6
     , transformers >= 0.3.0.0
     , mtl >= 2.1.2
+    , http-types >= 0.8.1
 
   -- Directories containing source files.
   -- hs-source-dirs:
