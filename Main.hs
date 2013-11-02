@@ -16,9 +16,17 @@ import qualified Data.ByteString.Char8 as BC
 -- | Download tweets, store in database and generate Bayesian filter
 main :: IO ()
 main = do
-    eToken <- liftM eitherDecode $ BL.readFile "/home/chris/Tweet/auth/bear_token.json" :: IO (Either String Token)
+    eToken <- readToken
+    eTweets <- download eToken
+    store eTweets
+
+readToken :: IO (Either String Token)
+readToken = liftM eitherDecode $ BL.readFile "/home/chris/Tweet/auth/bear_token.json"
+
+download :: Either String Token -> IO (Either String Tweets)
+download eToken =
     case eToken of
-        Left err    -> print err
+        Left err    -> return $ Left err
         Right token -> do
             req <- parseUrl "https://api.twitter.com/1.1/search/tweets.json?q=code&lang=en"
             let req' = req {
@@ -27,8 +35,12 @@ main = do
             res <- withManager $ httpLbs req'
             print res
             let body = eitherDecode $ responseBody res :: Either String Tweets
-            case body of
-                Left err        -> print err
-                Right tweets    -> withConnection $ \conn -> do
-                    mapM_ (insert conn) $ statuses tweets
-                    print tweets
+            return body
+
+store :: Either String Tweets -> IO ()
+store eTweets =
+    case eTweets of
+        Left err        -> print err
+        Right tweets    -> withConnection $ \conn -> do
+            mapM_ (insert conn) $ statuses tweets
+            print tweets
