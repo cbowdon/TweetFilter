@@ -13,6 +13,9 @@ SQLExpr(..)
 , fromSql
 ) where
 
+import Control.Monad.Trans
+import Control.Monad.Trans.Maybe
+import Control.Monad.Trans.Reader
 import Database.HDBC
 
 -- | A SQL expression (query, insert, update) with parameters
@@ -38,5 +41,16 @@ persist conn (SQLExpr stmt pms) a =
 retrieve :: (IConnection c, FromSQL a) => c -> SQLExpr -> IO (Maybe [a])
 retrieve conn (SQLExpr stmt pms) =
         withTransaction conn $ \c -> do
+            items <- quickQuery' c stmt pms
+            return . mapM parseSQL $ items
+
+persist' :: (IConnection c, ToSQL a) => SQLExpr -> a -> ReaderT c IO Integer
+persist' (SQLExpr stmt pms) a = do
+        conn <- ask
+        liftIO $ withTransaction conn $ \c -> run c stmt $ prepSQL a ++ pms
+
+retrieve' :: (IConnection c, FromSQL a) => c -> SQLExpr -> MaybeT IO [a]
+retrieve' conn (SQLExpr stmt pms) =
+    MaybeT $ withTransaction conn $ \c -> do
             items <- quickQuery' c stmt pms
             return . mapM parseSQL $ items

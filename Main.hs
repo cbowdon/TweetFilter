@@ -3,6 +3,7 @@
 module Main where
 
 import Control.Monad
+import Control.Monad.Error
 import Network.HTTP.Conduit
 import Network.HTTP.Types.Header
 import TwitterTypes
@@ -13,15 +14,24 @@ import Data.Aeson (eitherDecode)
 import qualified Data.ByteString.Lazy as BL
 import qualified Data.ByteString.Char8 as BC
 
+tokenFile :: FilePath
+tokenFile = "/home/chris/Tweet/auth/bear_token.json"
+
 -- | Download tweets, store in database and generate Bayesian filter
 main :: IO ()
 main = do
-    eToken <- readToken
+    eToken <- readToken tokenFile
     eTweets <- download eToken
     store eTweets
 
-readToken :: IO (Either String Token)
-readToken = liftM eitherDecode $ BL.readFile "/home/chris/Tweet/auth/bear_token.json"
+main' = runErrorT $ do
+    token <- readToken' tokenFile
+    tweets <- download' token
+    liftIO $ store' tweets
+    return tweets
+
+readToken :: FilePath -> IO (Either String Token)
+readToken = liftM eitherDecode . BL.readFile
 
 download :: Either String Token -> IO (Either String Tweets)
 download eToken =
@@ -44,3 +54,24 @@ store eTweets =
         Right tweets    -> withConnection $ \conn -> do
             mapM_ (insert conn) $ statuses tweets
             print tweets
+
+readToken' :: FilePath -> ErrorT String IO Token
+readToken' filePath = ErrorT $ do
+    contents <- BL.readFile filePath
+    return $ eitherDecode contents
+
+download' :: Token -> ErrorT String IO Tweets
+download' token = ErrorT $ do
+    req <- liftIO $ parseUrl "https://api.twitter.com/1.1/search/tweets.json?q=code&lang=en"
+    let req' = req {
+        requestHeaders = [(hAuthorization, BC.pack $ "Bearer " ++ accessToken token)]
+    }
+    res <- liftIO $ withManager $ httpLbs req'
+    liftIO $ print res
+    return $ eitherDecode $ responseBody res
+
+store' :: Tweets -> IO ()
+store' tweets =
+    withConnection $ \conn -> do
+        mapM_ (insert conn) $ statuses tweets
+        print tweets
