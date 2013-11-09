@@ -45,13 +45,11 @@ retrieve conn (SQLExpr stmt pms) =
             items <- quickQuery' c stmt pms
             return . mapM parseSQL $ items
 
--- TODO broken
-{-
 retrieve' :: (IConnection c, FromSQL a) => SQLExpr -> ReaderT c (MaybeT IO) [a]
 retrieve' (SQLExpr stmt pms) = do
     conn <- ask
-    stuff <- liftIO $ withTransaction conn $ \c -> do
-            items <- quickQuery' c stmt pms
-            return . mapM parseSQL $ items
-    return stuff
--}
+    raw <- liftIO $ withTransaction conn $ \c -> quickQuery' c stmt pms
+    items <- return $ mapM parseSQL raw
+    case items of
+        Just v  -> return v
+        Nothing -> return []
