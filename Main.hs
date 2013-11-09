@@ -3,6 +3,7 @@
 module Main where
 
 import Control.Monad.Error
+import Control.Monad.Reader
 import Network.HTTP.Conduit
 import Network.HTTP.Types.Header
 import TwitterTypes
@@ -47,5 +48,5 @@ download token = ErrorT $ do
 store :: Tweets -> IO ()
 store tweets =
     withConnection $ \conn -> do
-        mapM_ (insert conn) $ statuses tweets
+        mapM_ (\t -> runReaderT (insert t) conn) $ statuses tweets
         print tweets

@@ -36,12 +36,12 @@ instance FromJSON Token where
 
 instance ToSQL Token where
     prepSQL (Token at tt)   = [toSql at, toSql tt]
-    insert c = persist c (SQLExpr Insert.token [])
+    insert = persist $ SQLExpr Insert.token []
 
 instance FromSQL Token where
     parseSQL [at, tt]   = Just $ Token (fromSql at) (fromSql tt)
     parseSQL _          = Nothing
-    select c t = retrieve c (SQLExpr Select.token (prepSQL t))
+    select c = retrieve c . SQLExpr Select.token . prepSQL
 
 instance Arbitrary Token where
     arbitrary = do
@@ -65,12 +65,12 @@ instance FromJSON User where
 
 instance ToSQL User where
     prepSQL (User i n sn) = [toSql i, toSql n, toSql sn]
-    insert c = persist c $ SQLExpr Insert.user []
+    insert = persist $ SQLExpr Insert.user []
 
 instance FromSQL User where
     parseSQL [i, n, sn] = Just $ User (fromSql i) (fromSql n) (fromSql sn)
     parseSQL _          = Nothing
-    select c u = retrieve c $ SQLExpr Select.user (prepSQL u)
+    select c = retrieve c . SQLExpr Select.user . prepSQL
 
 instance Arbitrary User where
     arbitrary = do
@@ -88,14 +88,14 @@ instance FromJSON Tweet
 
 instance ToSQL Tweet where
     prepSQL (Tweet t u) = [toSql t, toSql $ uid u]
-    insert c tweet = do
-        _ <- insert c $ user tweet
-        persist c (SQLExpr Insert.tweet []) tweet
+    insert tweet = do
+        _ <- insert $ user tweet
+        persist (SQLExpr Insert.tweet []) tweet
 
 instance FromSQL Tweet where
     parseSQL (t:u)  = parseSQL u >>= Just . Tweet (fromSql t)
     parseSQL _      = Nothing
-    select c t = retrieve c $ SQLExpr Select.tweet (prepSQL t)
+    select c = retrieve c . SQLExpr Select.tweet . prepSQL
 
 instance Arbitrary Tweet where
     arbitrary = do
