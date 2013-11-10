@@ -41,7 +41,7 @@ instance ToSQL Token where
 instance FromSQL Token where
     parseSQL [at, tt]   = Just $ Token (fromSql at) (fromSql tt)
     parseSQL _          = Nothing
-    select c = retrieve c . SQLExpr Select.token . prepSQL
+    select = retrieve . SQLExpr Select.token . prepSQL
 
 instance Arbitrary Token where
     arbitrary = do
@@ -70,7 +70,7 @@ instance ToSQL User where
 instance FromSQL User where
     parseSQL [i, n, sn] = Just $ User (fromSql i) (fromSql n) (fromSql sn)
     parseSQL _          = Nothing
-    select c = retrieve c . SQLExpr Select.user . prepSQL
+    select = retrieve . SQLExpr Select.user . prepSQL
 
 instance Arbitrary User where
     arbitrary = do
@@ -95,7 +95,7 @@ instance ToSQL Tweet where
 instance FromSQL Tweet where
     parseSQL (t:u)  = parseSQL u >>= Just . Tweet (fromSql t)
     parseSQL _      = Nothing
-    select c = retrieve c . SQLExpr Select.tweet . prepSQL
+    select = retrieve . SQLExpr Select.tweet . prepSQL
 
 instance Arbitrary Tweet where
     arbitrary = do
