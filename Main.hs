@@ -4,6 +4,7 @@ module Main where
 
 import Control.Monad.Error
 import Control.Monad.Reader
+import Data.Char
 import Network.HTTP.Conduit
 import Network.HTTP.Types.Header
 import TwitterTypes
@@ -15,7 +16,7 @@ import qualified Data.ByteString.Lazy as BL
 import qualified Data.ByteString.Char8 as BC
 
 tokenFile :: FilePath
-tokenFile = "/home/chris/Tweet/auth/bear_token.json"
+tokenFile = "auth/bear_token.json"
 
 url :: String
 url = "https://api.twitter.com/1.1/search/tweets.json?q=code&lang=en"
@@ -27,8 +28,21 @@ main = eitherTweets >>= print
         eitherTweets = runErrorT $ do
             token <- readToken tokenFile
             tweets <- download token
+            classes <- mapM humanClassify $ take 5 $ statuses tweets
+            liftIO $ print classes
             liftIO $ store tweets
+            liftIO $ mark tweets classes
             return tweets
+
+humanClassify :: Tweet -> ErrorT String IO Bool
+humanClassify tweet = do
+    _ <- liftIO $ print tweet
+    _ <- liftIO $ putStr "Is it spam? y/n "
+    input <- liftIO getLine
+    case map toLower input of
+        "y" -> return True
+        "n" -> return False
+        x   -> throwError $ "Input not understood" ++ x
 
 readToken :: FilePath -> ErrorT String IO Token
 readToken filePath = ErrorT $ do
@@ -42,11 +56,14 @@ download token = ErrorT $ do
         requestHeaders = [(hAuthorization, BC.pack $ "Bearer " ++ accessToken token)]
     }
     res <- liftIO $ withManager $ httpLbs req'
-    liftIO $ print res
     return $ eitherDecode $ responseBody res
 
 store :: Tweets -> IO ()
 store tweets =
-    withConnection $ \conn -> do
-        mapM_ (\t -> runReaderT (insert t) conn) $ statuses tweets
-        print tweets
+    withConnection $ \conn -> mapM_ (insert' conn) $ statuses tweets
+    where
+        insert' c t = runReaderT (insert t) c
+
+-- TODO
+mark :: Tweets -> [Bool] -> IO ()
+mark tweets classes = print "TODO"

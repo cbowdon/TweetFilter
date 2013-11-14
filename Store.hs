@@ -38,14 +38,6 @@ persist (SQLExpr stmt pms) a = do
         liftIO $ withTransaction conn $ \c -> run c stmt $ prepSQL a ++ pms
 
 -- | General function for retrieving data - returns list of possible values
-{-
-retrieve :: (IConnection c, FromSQL a) => c -> SQLExpr -> MaybeT IO [a]
-retrieve conn (SQLExpr stmt pms) =
-    MaybeT $ withTransaction conn $ \c -> do
-            items <- quickQuery' c stmt pms
-            return . mapM parseSQL $ items
--}
-
 retrieve :: (IConnection c, FromSQL a) => SQLExpr -> ReaderT c IO [a]
 retrieve (SQLExpr stmt pms) = do
     conn <- ask
