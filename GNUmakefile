@@ -4,6 +4,7 @@ DIST="dist"
 
 all:
 	runhaskell $(MAIN)
+	make clean
 
 compile:
 	cabal install \

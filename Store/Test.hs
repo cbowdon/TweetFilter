@@ -20,7 +20,7 @@ prop_parseTest a = Just a == (parseSQL . prepSQL $ a)
 insertTest :: (ToSQL a, IConnection c) => a -> ReaderT c IO Bool
 insertTest a = liftM (==1) $ insert a
 
-selectTest :: (IConnection c, Eq a, FromSQL a, ToSQL a) => a -> ReaderT c IO Bool
+selectTest :: (IConnection c, Eq a, FromSQL a, ToSQL a, Show a) => a -> ReaderT c IO Bool
 selectTest a = do
     _ <- insert a
     a' <- select a
@@ -48,5 +48,7 @@ testUser = withConnection $ \conn -> do
 -- | Check saving and loading tweets
 testTweet :: IO ()
 testTweet = withConnection  $ \conn -> do
+    print $ replicate 50 '='
     quickCheck (prop insertTest conn :: Tweet -> Property)
+    print $ replicate 50 '~'
     quickCheck (prop selectTest conn :: Tweet -> Property)

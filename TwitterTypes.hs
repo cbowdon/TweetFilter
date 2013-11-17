@@ -53,6 +53,7 @@ instance Arbitrary Token where
 data User = User    { uid :: String
                     , name :: String
                     , screenName :: String
+                    , spammer :: Maybe Bool
                     } deriving (Eq, Show, Generic)
 
 
@@ -61,14 +62,18 @@ instance FromJSON User where
         User    <$> (v .: "id_str")
                 <*> (v .: "name")
                 <*> (v .: "screen_name")
+                <*> (v .:? "spammer")
     parseJSON _         = mzero
 
 instance ToSQL User where
-    prepSQL (User i n sn) = [toSql i, toSql n, toSql sn]
+    prepSQL (User i n sn sp) =
+        case sp of
+            Nothing -> [toSql i, toSql n, toSql sn, SqlNull]
+            Just v  -> [toSql i, toSql n, toSql sn, toSql v]
     insert = persist $ SQLExpr Insert.user []
 
 instance FromSQL User where
-    parseSQL [i, n, sn] = Just $ User (fromSql i) (fromSql n) (fromSql sn)
+    parseSQL [i, n, sn, sp] = Just $ User (fromSql i) (fromSql n) (fromSql sn) (fromSql sp)
     parseSQL _          = Nothing
     select = retrieve . SQLExpr Select.user . prepSQL
 
@@ -77,23 +82,30 @@ instance Arbitrary User where
         u <- randomString
         n <- randomString
         sn <- randomString
-        return $ User u n sn
+        sp <- arbitrary :: Gen (Maybe Bool)
+        return $ User u n sn sp
 
 -- | Core information in a Tweet: the text content and the user
 data Tweet = Tweet  { text :: String
-                    , user:: User
+                    , user :: User
+                    , spam :: Maybe Bool
                     } deriving (Eq, Show, Generic)
 
 instance FromJSON Tweet
 
 instance ToSQL Tweet where
-    prepSQL (Tweet t u) = [toSql t, toSql $ uid u]
+    prepSQL (Tweet t u s) =
+        case s of
+            Nothing ->  [toSql t, toSql $ uid u, SqlNull]
+            Just v  ->  [toSql t, toSql $ uid u, toSql v]
     insert tweet = do
         _ <- insert $ user tweet
         persist (SQLExpr Insert.tweet []) tweet
 
 instance FromSQL Tweet where
-    parseSQL (t:u)  = parseSQL u >>= Just . Tweet (fromSql t)
+    parseSQL (t:s:u)  = do
+        u' <- parseSQL u
+        return $ Tweet (fromSql t) u' (Just . fromSql $ s)
     parseSQL _      = Nothing
     select = retrieve . SQLExpr Select.tweet . prepSQL
 
@@ -101,7 +113,8 @@ instance Arbitrary Tweet where
     arbitrary = do
         t <- randomString
         u <- arbitrary :: Gen User
-        return $ Tweet t u
+        s <- arbitrary :: Gen (Maybe Bool)
+        return $ Tweet t u s
 
 -- | A collection of Tweets (provided for JSON compatibility)
 data Tweets = Tweets    { statuses :: [Tweet]

@@ -9,7 +9,7 @@ create table User (
     id              varchar(255) primary key unique not null,
     name            varchar(255) not null,
     screen_name     varchar(255) not null,
-    spammer         boolean default false
+    spammer         boolean
 );
 
 drop table if exists Tweet;
@@ -17,6 +17,6 @@ create table Tweet (
     id              integer primary key autoincrement,
     text            varchar(140) not null,
     user_id         integer not null,
-    spam            boolean default false,
+    spam            boolean,
     foreign key(user_id) references User(id)
 );
