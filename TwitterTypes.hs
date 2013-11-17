@@ -14,9 +14,11 @@ import Data.Aeson
 import Database.HDBC
 import GHC.Generics
 import Test.QuickCheck
+import Spam
 import Store
 import qualified Store.Raw.Insert as Insert
 import qualified Store.Raw.Select as Select
+import qualified Store.Raw.Update as Update
 
 randomString :: Gen String
 randomString = listOf1 randomChar
@@ -85,6 +87,9 @@ instance Arbitrary User where
         sp <- arbitrary :: Gen (Maybe Bool)
         return $ User u n sn sp
 
+instance Spam User where
+    mark b = modify $ SQLExpr Update.markUser [toSql b]
+
 -- | Core information in a Tweet: the text content and the user
 data Tweet = Tweet  { text :: String
                     , user :: User
@@ -115,6 +120,9 @@ instance Arbitrary Tweet where
         u <- arbitrary :: Gen User
         s <- arbitrary :: Gen (Maybe Bool)
         return $ Tweet t u s
+
+instance Spam Tweet where
+    mark b = modify $ SQLExpr Update.markTweet [toSql b]
 
 -- | A collection of Tweets (provided for JSON compatibility)
 data Tweets = Tweets    { statuses :: [Tweet]

@@ -6,6 +6,7 @@ SQLExpr(..)
 , ToSQL(..)
 , FromSQL(..)
 -- * Functions
+, modify
 , persist
 , retrieve
 -- * Re-exported functions
@@ -36,6 +37,13 @@ persist :: (IConnection c, ToSQL a) => SQLExpr -> a -> ReaderT c IO Integer
 persist (SQLExpr stmt pms) a = do
         conn <- ask
         liftIO $ withTransaction conn $ \c -> run c stmt $ prepSQL a ++ pms
+
+-- | General function for modifying persisted data - returns count of rows affected
+modify :: (IConnection c, ToSQL a) => SQLExpr -> a -> ReaderT c IO Integer
+modify (SQLExpr stmt pms) a = do
+        conn <- ask
+        liftIO $ withTransaction conn $ \c -> run c stmt $ pms ++ prepSQL a
+
 
 -- | General function for retrieving data - returns list of possible values
 retrieve :: (IConnection c, FromSQL a) => SQLExpr -> ReaderT c IO [a]
