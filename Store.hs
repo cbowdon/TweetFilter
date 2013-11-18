@@ -3,6 +3,7 @@ module Store
 ( -- * Types
 SQLExpr(..)
 -- * Classes
+, IdSQL(..)
 , ToSQL(..)
 , FromSQL(..)
 -- * Functions
@@ -22,13 +23,17 @@ import Database.HDBC
 data SQLExpr = SQLExpr  { statement :: String
                         , parameters :: [SqlValue] }
 
+-- | Class for datatypes that can be uniquely identified in SQL
+class IdSQL a where
+    idSQL :: a -> [SqlValue]
+
 -- | Class for datatypes can be converted to SQL values and inserted into database
-class ToSQL a where
+class (IdSQL a) => ToSQL a where
     prepSQL :: a -> [SqlValue]
     insert :: IConnection c => a -> ReaderT c IO Integer
 
 -- | Class for datatypes can be converted from SQL values and retrieve from database
-class FromSQL a where
+class (IdSQL a) => FromSQL a where
     parseSQL :: [SqlValue] -> Maybe a
     select :: IConnection c => a -> ReaderT c IO [a]
 
@@ -42,8 +47,7 @@ persist (SQLExpr stmt pms) a = do
 modify :: (IConnection c, ToSQL a) => SQLExpr -> a -> ReaderT c IO Integer
 modify (SQLExpr stmt pms) a = do
         conn <- ask
-        liftIO $ withTransaction conn $ \c -> run c stmt $ pms ++ prepSQL a
-
+        liftIO $ withTransaction conn $ \c -> run c stmt $ pms ++ idSQL a
 
 -- | General function for retrieving data - returns list of possible values
 retrieve :: (IConnection c, FromSQL a) => SQLExpr -> ReaderT c IO [a]

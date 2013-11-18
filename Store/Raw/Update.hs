@@ -3,10 +3,11 @@ module Store.Raw.Update where
 
 markTweet :: String
 markTweet = "update Tweet \
-            \set spam = 1 \
-            \where id = ?;"
+            \set spam = ? \
+            \where text = ? \
+            \and user_id = ?;"
 
 markUser :: String
 markUser = "update User \
-            \set spammer = 1 \
+            \set spammer = ? \
             \where id = ?;"

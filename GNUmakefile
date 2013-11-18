@@ -13,6 +13,7 @@ compile:
 		--ghc-option=-Wall
 	make lint
 	make doc
+	make clean
 
 run:
 	cabal run
@@ -30,8 +31,11 @@ clean:
 db:
 	sqlite3 $(DB) < scripts/create_db.sql
 
-test: lint
-	ghc -Wall Test.hs -o RunTest
+test: compile-tests db
 	./RunTest
 	rm RunTest
+
+compile-tests:
+	ghc -Wall Test.hs -o RunTest
+	make lint
 	make clean

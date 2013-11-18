@@ -36,14 +36,17 @@ instance FromJSON Token where
                 <*> (v .: "token_type")
     parseJSON _         = mzero
 
+instance IdSQL Token where
+    idSQL (Token at tt) = [toSql at, toSql tt]
+
 instance ToSQL Token where
-    prepSQL (Token at tt)   = [toSql at, toSql tt]
+    prepSQL (Token at tt) = [toSql at, toSql tt]
     insert = persist $ SQLExpr Insert.token []
 
 instance FromSQL Token where
     parseSQL [at, tt]   = Just $ Token (fromSql at) (fromSql tt)
     parseSQL _          = Nothing
-    select = retrieve . SQLExpr Select.token . prepSQL
+    select = retrieve . SQLExpr Select.token . idSQL
 
 instance Arbitrary Token where
     arbitrary = do
@@ -67,6 +70,9 @@ instance FromJSON User where
                 <*> (v .:? "spammer")
     parseJSON _         = mzero
 
+instance IdSQL User where
+    idSQL (User i _ _ _) = [toSql i]
+
 instance ToSQL User where
     prepSQL (User i n sn sp) =
         case sp of
@@ -77,7 +83,7 @@ instance ToSQL User where
 instance FromSQL User where
     parseSQL [i, n, sn, sp] = Just $ User (fromSql i) (fromSql n) (fromSql sn) (fromSql sp)
     parseSQL _          = Nothing
-    select = retrieve . SQLExpr Select.user . prepSQL
+    select = retrieve . SQLExpr Select.user . idSQL
 
 instance Arbitrary User where
     arbitrary = do
@@ -89,6 +95,7 @@ instance Arbitrary User where
 
 instance Spam User where
     mark b = modify $ SQLExpr Update.markUser [toSql b]
+    isSpam = spammer
 
 -- | Core information in a Tweet: the text content and the user
 data Tweet = Tweet  { text :: String
@@ -97,6 +104,9 @@ data Tweet = Tweet  { text :: String
                     } deriving (Eq, Show, Generic)
 
 instance FromJSON Tweet
+
+instance IdSQL Tweet where
+    idSQL (Tweet t u _) = [toSql t, toSql $ uid u]
 
 instance ToSQL Tweet where
     prepSQL (Tweet t u s) =
@@ -112,7 +122,7 @@ instance FromSQL Tweet where
         u' <- parseSQL u
         return $ Tweet (fromSql t) u' (Just . fromSql $ s)
     parseSQL _      = Nothing
-    select = retrieve . SQLExpr Select.tweet . prepSQL
+    select = retrieve . SQLExpr Select.tweet . idSQL
 
 instance Arbitrary Tweet where
     arbitrary = do
@@ -123,6 +133,7 @@ instance Arbitrary Tweet where
 
 instance Spam Tweet where
     mark b = modify $ SQLExpr Update.markTweet [toSql b]
+    isSpam = spam
 
 -- | A collection of Tweets (provided for JSON compatibility)
 data Tweets = Tweets    { statuses :: [Tweet]

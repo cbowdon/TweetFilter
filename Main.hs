@@ -10,7 +10,6 @@ import Network.HTTP.Types.Header
 import TwitterTypes
 import Store
 import Store.Connection
-import Store.Test
 import Data.Aeson (eitherDecode)
 import qualified Data.ByteString.Lazy as BL
 import qualified Data.ByteString.Char8 as BC
@@ -63,7 +62,3 @@ store tweets =
     withConnection $ \conn -> mapM_ (insert' conn) $ statuses tweets
     where
         insert' c t = runReaderT (insert t) c
-
--- TODO
-mark :: Tweets -> [Bool] -> IO ()
-mark tweets classes = print "TODO"

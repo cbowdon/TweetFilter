@@ -10,3 +10,5 @@ main = do
     testUser
     print "Tweet"
     testTweet
+    print "Marking spam"
+    testMark
