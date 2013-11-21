@@ -30,7 +30,6 @@ main = eitherTweets >>= print
             classes <- mapM humanClassify $ take 5 $ statuses tweets
             liftIO $ print classes
             liftIO $ store tweets
-            liftIO $ mark tweets classes
             return tweets
 
 humanClassify :: Tweet -> ErrorT String IO Bool

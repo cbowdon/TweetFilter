@@ -23,7 +23,7 @@ import qualified Store.Raw.Update as Update
 randomString :: Gen String
 randomString = listOf1 randomChar
     where
-        randomChar = elements $ ['A'..'Z'] ++ ['a'..'z'] ++ ['0'..'9']
+        randomChar = elements $ ['A'..'Z'] ++ ['a'..'z'] ++ ['0'..'9'] ++ " .,_-;:!<>\\[]+=@#$%^&&"
 
 -- | An authentication token from Twitter
 data Token = Token  { accessToken :: String
