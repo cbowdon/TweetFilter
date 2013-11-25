@@ -7,6 +7,8 @@ main :: IO ()
 main = do
     print "Word frequency"
     testWordFreq
+    print "Relative frequency"
+    testRelativeFreq
     print "Token"
     testToken
     print "User"
