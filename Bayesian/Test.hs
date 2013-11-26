@@ -29,16 +29,21 @@ testWordFreq = do
     quickCheck prop_distinctWords
     quickCheck prop_fromTweet
 
--- TODO not quite right
 prop_sumFreqs :: Dict -> Bool
-prop_sumFreqs d = (sum . map (\w -> relativeFreq w d) . Map.keys . runDict $ d) == 1
+prop_sumFreqs d = (1.0 - sumKeys) < 1e-6
+    where
+        keys'           = Map.keys . runDict
+        relativeFreq' w = relativeFreq w d
+        sumKeys         = abs $ sum . map relativeFreq' . keys' $ d
 
 prop_zeroOne :: Dict -> Bool
-prop_zeroOne d = all (\x -> x > 0 && x <= 1) . map (\w -> relativeFreq w d) . Map.keys . runDict $ d
+prop_zeroOne d = all betweenZeroOne  . map relativeFreq' . keys' $ d
+    where
+        keys'               = Map.keys . runDict
+        betweenZeroOne x    = x > 0 && x <= 1
+        relativeFreq' w     = relativeFreq w d
 
 testRelativeFreq :: IO ()
 testRelativeFreq = do
     quickCheck prop_sumFreqs
     quickCheck prop_zeroOne
-
-
