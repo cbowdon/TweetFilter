@@ -3,9 +3,11 @@ module Bayesian.Test
 , testRelativeFreq
 , testSpamProb
 , testCombinedProbs
+, testMostInteresting
 ) where
 
 import qualified Data.Map as Map
+import qualified Data.List as List
 import Test.QuickCheck
 import Bayesian
 import TwitterTypes
@@ -67,3 +69,12 @@ prop_cpZeroOne = between 0 1 . runProb . combinedProb
 
 testCombinedProbs :: IO ()
 testCombinedProbs = quickCheck prop_cpZeroOne
+
+prop_descOrder :: Dict -> Dict -> Bool
+prop_descOrder goodCounts badCounts = reverse (List.sort res) == res
+    where
+        res         = map snd $ mostInteresting 5 randWords goodCounts badCounts
+        randWords   = Map.keys .runDict $ badCounts
+
+testMostInteresting :: IO ()
+testMostInteresting = quickCheck prop_descOrder

@@ -5,9 +5,11 @@ import Store.Test
 
 main :: IO ()
 main = do
-    print "Combined Probabilities"
+    print "Most interesting"
+    testMostInteresting
+    print "Combined probabilities"
     testCombinedProbs
-    print "Spam Probability"
+    print "Spam probability"
     testSpamProb
     print "Word frequency"
     testWordFreq

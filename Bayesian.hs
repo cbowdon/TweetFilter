@@ -2,8 +2,8 @@
 module Bayesian
 ( -- * Types
 Dict(..)
-, Words(..)
 , Prob(..)
+, Words(..)
 , Word(..)
 -- * Functions
 , extractWords
@@ -13,6 +13,7 @@ Dict(..)
 , spamProb
 , interestingness
 , combinedProb
+, mostInteresting
 ) where
 
 import Control.Arrow
@@ -32,12 +33,17 @@ type Word = String
 -- newtype Word = Word { runWord :: String } deriving (Eq, Show)
 
 -- | A probability
-newtype Prob = Prob { runProb :: Double } deriving (Eq, Show)
+newtype Prob = Prob { runProb :: Double } deriving (Eq, Ord)
 
+-- | Instance for QuickCheck
 instance Arbitrary Prob where
     arbitrary = do
         p <- choose (0.0, 1.0)
         return . Prob $ p
+
+-- | Pretty print
+instance Show Prob where
+    show (Prob p) = 'p' : show p
 
 -- | Pair of word and count
 data CountedWord = CountedWord { runCountedWord :: (Word, Int) } deriving (Eq, Show)
@@ -104,6 +110,7 @@ spamProb word goodCounts badCounts
         rfBad   = relativeFreq word badCounts
         p       = rfBad / (rfGood + rfBad)
 
+-- | A blunt measure of significance (deviation from mean)
 interestingness :: Prob -> Double
 interestingness (Prob p) = abs $ p - 0.5
 
@@ -116,9 +123,9 @@ combinedProb p = Prob $ num / denom
         denom = prod p + foldr ((\b a -> b * (1 - a)) . runProb) 1.0 p
 
 -- TODO 4 params, the pair of dicts at least is prime candidate for Reader monad
-nMostInteresting :: Int -> [Word] -> Dict -> Dict -> [(Word, Prob)]
-nMostInteresting n w goodCounts badCounts = take n . List.sortBy comp . map f $ w
+-- | Calculates the n most interesting words
+mostInteresting :: Int -> [Word] -> Dict -> Dict -> [(Word, Prob)]
+mostInteresting n w goodCounts badCounts = take n . List.sortBy (flip comp) . map f $ w
     where
-        f w = (w, spamProb w goodCounts badCounts)
+        f w' = (w', spamProb w' goodCounts badCounts)
         comp (_,p) (_,p') = compare (interestingness p) (interestingness p')
-
