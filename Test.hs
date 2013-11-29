@@ -5,6 +5,10 @@ import Store.Test
 
 main :: IO ()
 main = do
+    print "Combined Probabilities"
+    testCombinedProbs
+    print "Spam Probability"
+    testSpamProb
     print "Word frequency"
     testWordFreq
     print "Relative frequency"
