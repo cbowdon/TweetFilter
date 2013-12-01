@@ -77,13 +77,13 @@ instance Arbitrary Words where
 
 -- | Extract non-trivial, alphabetical (or @name) words from a tweet
 extractWords :: String -> Words
-extractWords = Words . map alphabetical . filter nonTrivial . words
+extractWords w = Words [alphabetical w' | w' <- words w, nonTrivial w']
     where
         nonTrivial = (> 2) . length
-        alphabetical w =
-            case head w of
-                '@' -> w
-                _   -> filter (\x -> elem x $ ['A'..'Z'] ++ ['a'..'z']) w
+        alphabetical s =
+            case head s of
+                '@' -> s
+                _   -> filter (\x -> elem x $ ['A'..'Z'] ++ ['a'..'z']) s
 
 -- | Create dictionary of word frequencies from a list of words
 wordFreqs :: Words -> Dict
@@ -121,17 +121,19 @@ combinedProb p
     | num == 0  = Prob 0
     | otherwise = Prob $ num / denom
     where
-        prod = foldr ((*) . runProb) 1.0
-        num = prod p
-        denom = prod p + foldr ((\b a -> b * (1 - a)) . runProb) 1.0 p
+        -- TODO this would benefit from stream fusion
+        p'  = [runProb x | x <- p]
+        mp' = [1 - runProb x | x <- p]
+        num = product p'
+        denom = product p' + product mp'
 
 -- TODO 4 params, the pair of dicts at least is prime candidate for Reader monad
 -- | Calculates the n most interesting words
 mostInteresting :: Int -> [Word] -> Dict -> Dict -> [(Word, Prob)]
-mostInteresting n w goodCounts badCounts = take n . List.sortBy (flip comp) . map f $ w
+mostInteresting n w goodCounts badCounts = take n . List.sortBy (flip comp) $ f
     where
-        f w' = (w', spamProb w' goodCounts badCounts)
+        f = [(w', spamProb w' goodCounts badCounts) | w' <-  w]
         comp (_,p) (_,p') = compare (interestingness p) (interestingness p')
 
 spamScore :: [Word] -> Dict -> Dict -> Prob
-spamScore = undefined
+spamScore wds goodCounts badCounts = combinedProb [p | (_,p) <- mostInteresting 5 wds goodCounts badCounts]
