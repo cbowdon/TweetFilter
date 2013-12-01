@@ -6,6 +6,12 @@ module Tweet.Test.Store
 , testMark
 ) where
 
+{-
+ - Warning to future generations:
+ - testing DB functionality with QuickCheck was not necessarily a good idea.
+ - Should add some HUnit tests here.
+ -}
+
 import Control.Monad
 import Control.Monad.Reader
 import Database.HDBC (IConnection)

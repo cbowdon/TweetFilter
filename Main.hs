@@ -20,6 +20,14 @@ tokenFile = "auth/bear_token.json"
 url :: String
 url = "https://api.twitter.com/1.1/search/tweets.json?q=code&lang=en"
 
+{-
+ - TODO this is more a test-bed than actual program
+ - let's make it work something like:
+ - bash> tweetfilter collect # downloads tweets to be human-classified
+ - bash> # human classifies tweets
+ - bash> tweetfilter classify # download some tweets and attempts to classify
+ -}
+
 -- | Download tweets, store in database and generate Bayesian filter
 main :: IO ()
 main = eitherTweets >>= print
