@@ -1,12 +1,12 @@
 -- | Type classes and functions associated with marking data as spam
-module Spam
+module Tweet.Spam
 ( -- * Classes
 Spam(..)
 ) where
 
 import Control.Monad.Reader
 import Database.HDBC
-import Store
+import Tweet.Store
 
 -- | A type which can be classified as spam (or not)
 class (ToSQL a) => Spam a where

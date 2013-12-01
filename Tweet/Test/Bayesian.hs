@@ -1,4 +1,4 @@
-module Bayesian.Test
+module Tweet.Test.Bayesian
 ( testWordFreq
 , testRelativeFreq
 , testSpamProb
@@ -11,8 +11,8 @@ import qualified Data.Map as Map
 import qualified Data.List as List
 import Test.QuickCheck
 import Test.HUnit
-import Bayesian
-import TwitterTypes
+import Tweet.Bayesian
+import Tweet.TwitterTypes
 
 between :: Double -> Double -> Double -> Bool
 between a b x = a <= x && x <= b

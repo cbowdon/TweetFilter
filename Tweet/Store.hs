@@ -1,5 +1,5 @@
 -- | Persistence layer
-module Store
+module Tweet.Store
 ( -- * Types
 SQLExpr(..)
 -- * Classes

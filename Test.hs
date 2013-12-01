@@ -1,8 +1,8 @@
 module Main where
 
 import Test.HUnit
-import Bayesian.Test
-import Store.Test
+import Tweet.Test.Bayesian
+import Tweet.Test.Store
 
 main :: IO ()
 main = do

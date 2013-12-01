@@ -1,5 +1,5 @@
 -- | Bayesian filtering functionality - build frequency maps and calculating probability
-module Bayesian
+module Tweet.Bayesian
 ( -- * Types
 Dict(..)
 , Prob(..)

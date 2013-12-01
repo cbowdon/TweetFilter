@@ -1,5 +1,5 @@
 -- | Raw SQL update strings
-module Store.Raw.Update where
+module Tweet.Store.Raw.Update where
 
 markTweet :: String
 markTweet = "update Tweet \

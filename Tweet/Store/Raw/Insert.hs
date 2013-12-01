@@ -1,5 +1,5 @@
 -- | Raw SQL insert commands
-module Store.Raw.Insert where
+module Tweet.Store.Raw.Insert where
 
 token :: String
 token = "insert into Token (access_token, token_type) values (?, ?);"

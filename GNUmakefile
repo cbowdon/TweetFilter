@@ -19,13 +19,14 @@ run:
 	cabal run
 
 lint:
-	hlint *.hs Store/*.hs
+	find . -name "*.hs" | xargs hlint
 
 doc:
 	cabal haddock --executables
 
 clean:
-	rm -f *.o *.hi Store/*.o Store/*.hi Store/Raw/*.o Store/Raw/*.hi Bayesian/*.hi Bayesian/*.o
+	find . -name "*.hi" | xargs rm
+	find . -name "*.o" | xargs rm
 	rm -rf $(DIST)
 
 db:
@@ -36,6 +37,6 @@ test: compile-tests db
 	rm RunTest
 
 compile-tests:
-	ghc -Wall Test.hs -o RunTest
+	ghc -Wall Tweet/Test/Test.hs -o RunTest
 	make lint
 	make clean

@@ -1,5 +1,5 @@
 -- | Connection utilities for the persistence layer
-module Store.Connection
+module Tweet.Store.Connection
 ( withConnection
 ) where
 

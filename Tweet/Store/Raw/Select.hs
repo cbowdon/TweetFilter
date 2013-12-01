@@ -1,5 +1,5 @@
 -- | Raw SQL query strings
-module Store.Raw.Select where
+module Tweet.Store.Raw.Select where
 
 token :: String
 token = "select access_token, token_type from Token where access_token = ? and token_type = ?;"

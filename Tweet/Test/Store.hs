@@ -1,20 +1,20 @@
 -- | Tests for the persistence layer
-module Store.Test
+module Tweet.Test.Store
 ( testToken
 , testUser
 , testTweet
 , testMark
 ) where
 
-import Spam
-import Store
-import Store.Connection
-import TwitterTypes
 import Control.Monad
 import Control.Monad.Reader
 import Database.HDBC (IConnection)
 import Test.QuickCheck
 import Test.QuickCheck.Monadic
+import Tweet.Spam
+import Tweet.Store
+import Tweet.Store.Connection
+import Tweet.TwitterTypes
 
 prop_parseTest :: (Eq a, FromSQL a, ToSQL a) => a -> Bool
 prop_parseTest a = Just a == (parseSQL . prepSQL $ a)

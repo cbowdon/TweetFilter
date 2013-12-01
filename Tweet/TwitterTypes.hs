@@ -1,6 +1,6 @@
 {-# LANGUAGE OverloadedStrings, DeriveGeneric #-}
 -- | Types associated with the Twitter Search API
-module TwitterTypes
+module Tweet.TwitterTypes
 ( -- * Types
 Token(..)
 , User(..)
@@ -14,11 +14,11 @@ import Data.Aeson
 import Database.HDBC
 import GHC.Generics
 import Test.QuickCheck
-import Spam
-import Store
-import qualified Store.Raw.Insert as Insert
-import qualified Store.Raw.Select as Select
-import qualified Store.Raw.Update as Update
+import Tweet.Spam
+import Tweet.Store
+import qualified Tweet.Store.Raw.Insert as Insert
+import qualified Tweet.Store.Raw.Select as Select
+import qualified Tweet.Store.Raw.Update as Update
 
 randomString :: Gen String
 randomString = listOf1 randomChar
