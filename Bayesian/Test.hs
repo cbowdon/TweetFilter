@@ -4,11 +4,13 @@ module Bayesian.Test
 , testSpamProb
 , testCombinedProbs
 , testMostInteresting
+, testSpamScore
 ) where
 
 import qualified Data.Map as Map
 import qualified Data.List as List
 import Test.QuickCheck
+import Test.HUnit
 import Bayesian
 import TwitterTypes
 
@@ -59,7 +61,7 @@ prop_98pc :: Dict -> Dict -> Bool
 prop_98pc goodCounts badCounts = all (between 0.01 0.99) spamProbs
     where
         badWords    = Map.keys . runDict $ badCounts
-        spamProbs   = map (\w -> runProb $ spamProb w goodCounts badCounts) $ badWords
+        spamProbs   = map (\w -> runProb $ spamProb w goodCounts badCounts) badWords
 
 testSpamProb :: IO ()
 testSpamProb = quickCheck prop_98pc
@@ -71,10 +73,43 @@ testCombinedProbs :: IO ()
 testCombinedProbs = quickCheck prop_cpZeroOne
 
 prop_descOrder :: Dict -> Dict -> Bool
-prop_descOrder goodCounts badCounts = reverse (List.sort res) == res
+prop_descOrder goodCounts badCounts = List.sort res == reverse res
     where
         res         = map snd $ mostInteresting 5 randWords goodCounts badCounts
         randWords   = Map.keys .runDict $ badCounts
 
 testMostInteresting :: IO ()
 testMostInteresting = quickCheck prop_descOrder
+
+testSpamScore :: Test
+testSpamScore = test [  "Manually calculated case"  ~: combProb     ~=? actualCP,
+                        "Manually calc'd most int"  ~: mstInt       ~=? actualMI,
+                        "Manually calc'd pSpams"    ~: pSpams       ~=? actualPS,
+                        "Manually calc'd gdRFs"     ~: gdRelFreqs   ~=? actualGRF,
+                        "Manually calc'd bdRFs"     ~: bdRelFreqs   ~=? actualBRF ]
+    where
+        gd          = Dict { runDict = Map.fromList [("you",5),("eat",4),("love",8),("hate",8),("sweet",3),("hello",1),("everything",2),("suck",4),("lol",1),("bad",3),("fuck",1)] }
+        bd          = Dict { runDict = Map.fromList [("free",4),("win",8),("click",9),("here",4),("you",5),("code",4),("sexy",6),("hot",6),("suck",3),("everything",1),("bad",2)] }
+        -- these words appear with higher relative frequencies in good than bad
+        ws          = ["you", "suck", "bad", "everything", "java"]
+{-
+ - Human calculations
+        gdSum       = 39
+        bdSum       = 52
+-}
+        gdRelFreqs  = [5/40, 4/40, 3/40, 2/40, 0/40] :: [Double]
+        bdRelFreqs  = [5/52, 3/52, 2/52, 1/52, 0/52] :: [Double]
+        pSpams      = [Prob x | x <- [0.4347826086956522, 0.3658536585365854, 0.33898305084745767, 0.2777777777777778, 0.01]]
+        -- as it happens, the interestingness ordering is just reverse order
+        mstInt      = reverse $ zip ws pSpams
+{-
+ - Human calculations
+        prod pSpams     = 1.4978042190149247e-4
+        prod 1-pSpams   = 0.16940399374516954
+-}
+        combProb    = Prob 8.83380052359703e-4
+        actualCP    = spamScore ws gd bd
+        actualMI    = mostInteresting 5 ws gd bd
+        actualPS    = [spamProb w gd bd | w <- ws]
+        actualGRF   = [relativeFreq w gd | w <- ws]
+        actualBRF   = [relativeFreq w bd | w <- ws]

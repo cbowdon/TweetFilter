@@ -14,6 +14,7 @@ Dict(..)
 , interestingness
 , combinedProb
 , mostInteresting
+, spamScore
 ) where
 
 import Control.Arrow
@@ -108,7 +109,7 @@ spamProb word goodCounts badCounts
     where
         rfGood  = relativeFreq word goodCounts
         rfBad   = relativeFreq word badCounts
-        p       = rfBad / (rfGood + rfBad)
+        p       = if rfBad == 0 then 0 else rfBad / (rfGood + rfBad)
 
 -- | A blunt measure of significance (deviation from mean)
 interestingness :: Prob -> Double
@@ -116,7 +117,9 @@ interestingness (Prob p) = abs $ p - 0.5
 
 -- Combined probability that a message is spam
 combinedProb :: [Prob] -> Prob
-combinedProb p = Prob $ num / denom
+combinedProb p
+    | num == 0  = Prob 0
+    | otherwise = Prob $ num / denom
     where
         prod = foldr ((*) . runProb) 1.0
         num = prod p
@@ -129,3 +132,6 @@ mostInteresting n w goodCounts badCounts = take n . List.sortBy (flip comp) . ma
     where
         f w' = (w', spamProb w' goodCounts badCounts)
         comp (_,p) (_,p') = compare (interestingness p) (interestingness p')
+
+spamScore :: [Word] -> Dict -> Dict -> Prob
+spamScore = undefined

@@ -1,10 +1,13 @@
 module Main where
 
+import Test.HUnit
 import Bayesian.Test
 import Store.Test
 
 main :: IO ()
 main = do
+    print "Spam score"
+    _ <- runTestTT testSpamScore
     print "Most interesting"
     testMostInteresting
     print "Combined probabilities"
