@@ -18,12 +18,12 @@ between :: Double -> Double -> Double -> Bool
 between a b x = a <= x && x <= b
 
 prop_sumWords :: Words -> Bool
-prop_sumWords w = sumValues == (length $ runWords w)
+prop_sumWords w = sumValues == length (runWords w)
     where
         sumValues = Map.foldr (+) 0 . runDict . wordFreqs $ w
 
 prop_distinctWords :: Words -> Bool
-prop_distinctWords w = distinctWords <= (length $ runWords w)
+prop_distinctWords w = distinctWords <= length (runWords w)
     where
         distinctWords = Map.size . runDict . wordFreqs $ w
 

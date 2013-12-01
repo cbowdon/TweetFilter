@@ -37,6 +37,6 @@ test: compile-tests db
 	rm RunTest
 
 compile-tests:
-	ghc -Wall Tweet/Test/Test.hs -o RunTest
+	ghc -Wall Test.hs -o RunTest
 	make lint
 	make clean
