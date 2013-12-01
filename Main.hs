@@ -9,7 +9,7 @@ import qualified Data.ByteString.Lazy as BL
 import qualified Data.ByteString.Char8 as BC
 import Network.HTTP.Conduit
 import Network.HTTP.Types.Header
-import Tweet.TwitterTypes
+import Tweet.Types
 import Tweet.Store
 import Tweet.Store.Connection
 import Data.Aeson (eitherDecode)

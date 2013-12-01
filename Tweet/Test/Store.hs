@@ -14,7 +14,7 @@ import Test.QuickCheck.Monadic
 import Tweet.Spam
 import Tweet.Store
 import Tweet.Store.Connection
-import Tweet.TwitterTypes
+import Tweet.Types
 
 prop_parseTest :: (Eq a, FromSQL a, ToSQL a) => a -> Bool
 prop_parseTest a = Just a == (parseSQL . prepSQL $ a)

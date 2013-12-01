@@ -1,6 +1,6 @@
 {-# LANGUAGE OverloadedStrings, DeriveGeneric #-}
 -- | Types associated with the Twitter Search API
-module Tweet.TwitterTypes
+module Tweet.Types
 ( -- * Types
 Token(..)
 , User(..)

@@ -12,7 +12,7 @@ import qualified Data.List as List
 import Test.QuickCheck
 import Test.HUnit
 import Tweet.Bayesian
-import Tweet.TwitterTypes
+import Tweet.Types
 
 between :: Double -> Double -> Double -> Bool
 between a b x = a <= x && x <= b
