@@ -1,7 +1,8 @@
 -- | Bayesian filtering functionality - build frequency maps and calculating probability
 module Tweet.Bayesian
 ( -- * Types
-Dict(..)
+Stats(..)
+, Dict(..)
 , Prob(..)
 , Word(..)
 -- * Functions
@@ -65,7 +66,7 @@ instance Arbitrary Dict where
         return . Dict . Map.fromList $ zip ws is
 
 -- | Statistics of good/bad words
-data Stats = Stats  { good :: Dict, bad :: Dict }
+data Stats = Stats  { goodCounts :: Dict, badCounts :: Dict } deriving (Eq, Show)
 
 instance Arbitrary Stats where
     arbitrary = liftM2 Stats arbitrary arbitrary
@@ -96,13 +97,13 @@ relativeFreq w (Dict d) = x / sumX
 
 -- | Get the probability that a word is spam
 spamProb :: Word -> Stats-> Prob
-spamProb word goodCounts badCounts
+spamProb word (Stats gd bd)
     | p < 0.01  = Prob 0.01
     | p > 0.99  = Prob 0.99
     | otherwise = Prob p
     where
-        rfGood  = relativeFreq word goodCounts
-        rfBad   = relativeFreq word badCounts
+        rfGood  = relativeFreq word gd
+        rfBad   = relativeFreq word bd
         p       = if rfBad == 0 then 0 else rfBad / (rfGood + rfBad)
 
 -- | A blunt measure of significance (deviation from mean)
@@ -121,13 +122,12 @@ combinedProb p
         num = product p'
         denom = product p' + product mp'
 
--- TODO 4 params, the pair of dicts at least is prime candidate for Reader monad
 -- | Calculates the n most interesting words
 mostInteresting :: Int -> [Word] -> Stats -> [(Word, Prob)]
-mostInteresting n w goodCounts badCounts = take n . List.sortBy (flip comp) $ f
+mostInteresting n wds stats = take n . List.sortBy (flip comp) $ f
     where
-        f = [(w', spamProb w' goodCounts badCounts) | w' <-  w]
+        f = [(w', spamProb w' stats) | w' <-  wds]
         comp (_,p) (_,p') = compare (interestingness p) (interestingness p')
 
 spamScore :: [Word] -> Stats -> Prob
-spamScore wds goodCounts badCounts = combinedProb [p | (_,p) <- mostInteresting 5 wds goodCounts badCounts]
+spamScore wds stats = combinedProb [p | (_,p) <- mostInteresting 5 wds stats]

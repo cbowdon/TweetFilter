@@ -57,11 +57,11 @@ testRelativeFreq = do
     quickCheck prop_sumFreqs
     quickCheck prop_rfZeroOne
 
-prop_98pc :: Dict -> Dict -> Bool
-prop_98pc goodCounts badCounts = all (between 0.01 0.99) spamProbs
+prop_98pc :: Stats -> Bool
+prop_98pc stats = all (between 0.01 0.99) spamProbs
     where
-        badWords    = Map.keys . runDict $ badCounts
-        spamProbs   = map (\w -> runProb $ spamProb w goodCounts badCounts) badWords
+        badWords    = Map.keys . runDict . badCounts $ stats
+        spamProbs   = map (\w -> runProb $ spamProb w stats) badWords
 
 testSpamProb :: IO ()
 testSpamProb = quickCheck prop_98pc
@@ -72,11 +72,11 @@ prop_cpZeroOne = between 0 1 . runProb . combinedProb
 testCombinedProbs :: IO ()
 testCombinedProbs = quickCheck prop_cpZeroOne
 
-prop_descOrder :: Dict -> Dict -> Bool
-prop_descOrder goodCounts badCounts = List.sort res == reverse res
+prop_descOrder :: Stats -> Bool
+prop_descOrder stats = List.sort res == reverse res
     where
-        res         = map snd $ mostInteresting 5 randWords goodCounts badCounts
-        randWords   = Map.keys .runDict $ badCounts
+        res         = map snd $ mostInteresting 5 randWords stats
+        randWords   = Map.keys .runDict . badCounts $ stats
 
 testMostInteresting :: IO ()
 testMostInteresting = quickCheck prop_descOrder
@@ -92,6 +92,7 @@ testSpamScore = test [  "Manually calculated case"  ~: combProb     ~=? actualCP
         rawBd       = [("free",4),("win",8),("click",9),("here",4),("you",5),("code",4),("sexy",6),("hot",6),("suck",3),("everything",1),("bad",2)]
         gd          = Dict { runDict = Map.fromList [(Word w,i) | (w,i) <- rawGd] }
         bd          = Dict { runDict = Map.fromList [(Word w,i) | (w,i) <- rawBd] }
+        stats       = Stats gd bd
         -- these words appear with higher relative frequencies in good than bad
         ws          = map Word ["you", "suck", "bad", "everything", "java"]
 {-
@@ -110,8 +111,8 @@ testSpamScore = test [  "Manually calculated case"  ~: combProb     ~=? actualCP
         prod 1-pSpams   = 0.16940399374516954
 -}
         combProb    = Prob 8.83380052359703e-4
-        actualCP    = spamScore ws gd bd
-        actualMI    = mostInteresting 5 ws gd bd
-        actualPS    = [spamProb w gd bd | w <- ws]
+        actualCP    = spamScore ws stats
+        actualMI    = mostInteresting 5 ws stats
+        actualPS    = [spamProb w stats | w <- ws]
         actualGRF   = [relativeFreq w gd | w <- ws]
         actualBRF   = [relativeFreq w bd | w <- ws]
