@@ -17,6 +17,7 @@ Dict(..)
 ) where
 
 import Control.Arrow
+import Control.Monad
 import Data.Maybe
 import qualified Data.Map as Map
 import qualified Data.List as List
@@ -63,6 +64,12 @@ instance Arbitrary Dict where
         is <- listOf1 $ choose (1, 140)
         return . Dict . Map.fromList $ zip ws is
 
+-- | Statistics of good/bad words
+data Stats = Stats  { good :: Dict, bad :: Dict }
+
+instance Arbitrary Stats where
+    arbitrary = liftM2 Stats arbitrary arbitrary
+
 extractWords :: String -> [Word]
 extractWords w = [Word $ alphabetical w' | w' <- words w, nonTrivial w']
     where
@@ -88,7 +95,7 @@ relativeFreq w (Dict d) = x / sumX
         sumX    = fromIntegral $ Map.foldr (+) 0 d
 
 -- | Get the probability that a word is spam
-spamProb :: Word -> Dict -> Dict-> Prob
+spamProb :: Word -> Stats-> Prob
 spamProb word goodCounts badCounts
     | p < 0.01  = Prob 0.01
     | p > 0.99  = Prob 0.99
@@ -116,11 +123,11 @@ combinedProb p
 
 -- TODO 4 params, the pair of dicts at least is prime candidate for Reader monad
 -- | Calculates the n most interesting words
-mostInteresting :: Int -> [Word] -> Dict -> Dict -> [(Word, Prob)]
+mostInteresting :: Int -> [Word] -> Stats -> [(Word, Prob)]
 mostInteresting n w goodCounts badCounts = take n . List.sortBy (flip comp) $ f
     where
         f = [(w', spamProb w' goodCounts badCounts) | w' <-  w]
         comp (_,p) (_,p') = compare (interestingness p) (interestingness p')
 
-spamScore :: [Word] -> Dict -> Dict -> Prob
+spamScore :: [Word] -> Stats -> Prob
 spamScore wds goodCounts badCounts = combinedProb [p | (_,p) <- mostInteresting 5 wds goodCounts badCounts]
