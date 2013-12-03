@@ -3,7 +3,6 @@ module Tweet.Bayesian
 ( -- * Types
 Dict(..)
 , Prob(..)
-, Words(..)
 , Word(..)
 -- * Functions
 , extractWords
@@ -18,7 +17,6 @@ Dict(..)
 ) where
 
 import Control.Arrow
-import Control.Monad
 import Data.Maybe
 import qualified Data.Map as Map
 import qualified Data.List as List
@@ -30,8 +28,17 @@ randomString = listOf1 randomChar
         randomChar = elements $ ['A'..'Z'] ++ ['a'..'z'] ++ ['0'..'9'] ++ ",.'\",-"
 
 -- | Type def for single words from a sentence
-type Word = String
--- newtype Word = Word { runWord :: String } deriving (Eq, Show)
+newtype Word = Word { runWord :: String } deriving (Eq, Ord, Read)
+
+-- | Pretty print
+instance Show Word where
+    show (Word w) = show w
+
+-- | Instance for QuickCheck
+instance Arbitrary Word where
+    arbitrary = do
+        s <- randomString
+        return $ Word s
 
 -- | A probability
 newtype Prob = Prob { runProb :: Double } deriving (Eq, Ord)
@@ -46,38 +53,18 @@ instance Arbitrary Prob where
 instance Show Prob where
     show (Prob p) = 'p' : show p
 
--- | Pair of word and count
-data CountedWord = CountedWord { runCountedWord :: (Word, Int) } deriving (Eq, Show)
-
--- | Instance for QuickCheck
-instance Arbitrary CountedWord where
-    arbitrary = do
-        w <- randomString
-        f <- choose (1, 140)
-        return $ CountedWord (w, f)
-
 -- | Dictionary of words to counts
 newtype Dict = Dict { runDict :: Map.Map Word Int } deriving (Eq, Show)
 
 -- | Instance for QuickCheck
 instance Arbitrary Dict where
     arbitrary = do
-        countedWords <- listOf1 $ liftM runCountedWord arbitrary
-        return . Dict . Map.fromList $ countedWords
+        ws <- listOf1 arbitrary
+        is <- listOf1 $ choose (1, 140)
+        return . Dict . Map.fromList $ zip ws is
 
--- TODO we don't need CountedWord
-
--- | Wrapper for list of strings
--- TODO could be redundant given Word above
-newtype Words = Words { runWords :: [Word] } deriving (Eq, Show)
-
--- | Instance for QuickCheck
-instance Arbitrary Words where
-    arbitrary = liftM Words $ listOf randomString
-
--- | Extract non-trivial, alphabetical (or @name) words from a tweet
-extractWords :: String -> Words
-extractWords w = Words [alphabetical w' | w' <- words w, nonTrivial w']
+extractWords :: String -> [Word]
+extractWords w = [Word $ alphabetical w' | w' <- words w, nonTrivial w']
     where
         nonTrivial = (> 2) . length
         alphabetical s =
@@ -86,8 +73,8 @@ extractWords w = Words [alphabetical w' | w' <- words w, nonTrivial w']
                 _   -> filter (\x -> elem x $ ['A'..'Z'] ++ ['a'..'z']) s
 
 -- | Create dictionary of word frequencies from a list of words
-wordFreqs :: Words -> Dict
-wordFreqs = Dict . Map.fromList . map (head &&& length) . List.group . List.sort . runWords
+wordFreqs :: [Word] -> Dict
+wordFreqs = Dict . Map.fromList . map (head &&& length) . List.group . List.sort
 
 -- | Merge two dictionaries, summing values
 merge :: Dict -> Dict -> Dict

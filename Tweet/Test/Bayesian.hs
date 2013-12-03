@@ -17,13 +17,13 @@ import Tweet.Types
 between :: Double -> Double -> Double -> Bool
 between a b x = a <= x && x <= b
 
-prop_sumWords :: Words -> Bool
-prop_sumWords w = sumValues == length (runWords w)
+prop_sumWords :: [Word] -> Bool
+prop_sumWords w = sumValues == length w
     where
         sumValues = Map.foldr (+) 0 . runDict . wordFreqs $ w
 
-prop_distinctWords :: Words -> Bool
-prop_distinctWords w = distinctWords <= length (runWords w)
+prop_distinctWords :: [Word] -> Bool
+prop_distinctWords w = distinctWords <= length w
     where
         distinctWords = Map.size . runDict . wordFreqs $ w
 
@@ -88,10 +88,12 @@ testSpamScore = test [  "Manually calculated case"  ~: combProb     ~=? actualCP
                         "Manually calc'd gdRFs"     ~: gdRelFreqs   ~=? actualGRF,
                         "Manually calc'd bdRFs"     ~: bdRelFreqs   ~=? actualBRF ]
     where
-        gd          = Dict { runDict = Map.fromList [("you",5),("eat",4),("love",8),("hate",8),("sweet",3),("hello",1),("everything",2),("suck",4),("lol",1),("bad",3),("fuck",1)] }
-        bd          = Dict { runDict = Map.fromList [("free",4),("win",8),("click",9),("here",4),("you",5),("code",4),("sexy",6),("hot",6),("suck",3),("everything",1),("bad",2)] }
+        rawGd       = [("you",5),("eat",4),("love",8),("hate",8),("sweet",3),("hello",1),("everything",2),("suck",4),("lol",1),("bad",3),("fuck",1)]
+        rawBd       = [("free",4),("win",8),("click",9),("here",4),("you",5),("code",4),("sexy",6),("hot",6),("suck",3),("everything",1),("bad",2)]
+        gd          = Dict { runDict = Map.fromList [(Word w,i) | (w,i) <- rawGd] }
+        bd          = Dict { runDict = Map.fromList [(Word w,i) | (w,i) <- rawBd] }
         -- these words appear with higher relative frequencies in good than bad
-        ws          = ["you", "suck", "bad", "everything", "java"]
+        ws          = map Word ["you", "suck", "bad", "everything", "java"]
 {-
  - Human calculations
         gdSum       = 39
