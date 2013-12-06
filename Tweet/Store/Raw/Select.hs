@@ -16,3 +16,9 @@ tweet = "select text, spam, user_id, name, screen_name, spammer \
                 \on  T.user_id = U.id \
             \where   T.text = ? \
                 \and U.id = ?;"
+
+loadTweets :: String
+loadTweets = "select text, spam, user_id, name, screen_name, spammer \
+                \from    Tweet as T \
+                \join    User as U \
+                    \on  T.user_id = U.id;"

@@ -3,7 +3,9 @@
 
 Every now and then on Weibo I get a message like "很有用! http://shorturl.com/1426415" - which translates as "Very useful! http://please.click.my.spam.link". Spam filters for email messages are well established, so let's try and apply that to microblogging. We'll start with Twitter rather than Weibo because there's no English API docs for Weibo.
 
-Disclaimer - the aim of this is to exercise my Haskell, not really to refine a spam filter.
+_Disclaimer_ - the aim of this is to exercise my Haskell, not really to refine a spam filter.
+
+**Update: abandoned!** (Classifying your own data - extremely tedious. Next time, using someone else's data.)
 
 ## Tasks
 + Get Twitter auth tokens (Bash script)

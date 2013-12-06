@@ -6,10 +6,13 @@ Token(..)
 , User(..)
 , Tweet(..)
 , Tweets(..)
+-- * Functions
+, loadTweets
 ) where
 
 import Control.Applicative
 import Control.Monad
+import Control.Monad.Reader
 import Data.Aeson
 import Database.HDBC
 import GHC.Generics
@@ -134,6 +137,9 @@ instance Arbitrary Tweet where
 instance Spam Tweet where
     mark b = modify $ SQLExpr Update.markTweet [toSql b]
     isSpam = spam
+
+loadTweets :: (IConnection c) => ReaderT c IO [Tweet]
+loadTweets = retrieve (SQLExpr Select.loadTweets [])
 
 -- | A collection of Tweets (provided for JSON compatibility)
 data Tweets = Tweets    { statuses :: [Tweet]

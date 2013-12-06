@@ -9,9 +9,11 @@ import qualified Data.ByteString.Lazy as BL
 import qualified Data.ByteString.Char8 as BC
 import Network.HTTP.Conduit
 import Network.HTTP.Types.Header
-import Tweet.Types
+import System.Environment
+import Tweet.Bayesian
 import Tweet.Store
 import Tweet.Store.Connection
+import Tweet.Types
 import Data.Aeson (eitherDecode)
 
 tokenFile :: FilePath
@@ -20,23 +22,44 @@ tokenFile = "auth/bear_token.json"
 url :: String
 url = "https://api.twitter.com/1.1/search/tweets.json?q=code&lang=en"
 
-{-
- - TODO this is more a test-bed than actual program
- - let's make it work something like:
- - bash> tweetfilter collect # downloads tweets to be human-classified
- - bash> # human classifies tweets
- - bash> tweetfilter classify # download some tweets and attempts to classify
- -}
+printUsage :: IO ()
+printUsage = mapM_ putStrLn [   "Takes 1 command line arg:",
+                                "\ttrain    = download tweets to build up database - must be human classified",
+                                "\tclassify = download tweets and attempt to classify whether spam or not"  ]
 
 -- | Download tweets, store in database and generate Bayesian filter
 main :: IO ()
-main = eitherTweets >>= print
+main = do
+    args <- getArgs
+    case args of
+        ["train"]       -> train
+        ["classify"]    -> classify
+        _               -> printUsage
+
+classify :: IO ()
+classify = withConnection $ \conn -> do
+    eitherProbs conn >>= print
+    print "Probabilities"
+    where
+        eitherProbs c = runErrorT $ do
+            token <- readToken tokenFile
+            tweets <- download token
+            stats <- liftIO $ runReaderT loadStats c
+            return [classifyTweet stats t | t <- statuses tweets]
+
+classifyTweet :: Stats -> Tweet -> Prob
+classifyTweet stats tweet = spamScore wds stats
+    where
+        wds = extractWords $ text tweet
+
+train :: IO ()
+train = do
+    eitherTweets >>= print
+    print "Now you must classify the tweets. Manually. Have fun."
     where
         eitherTweets = runErrorT $ do
             token <- readToken tokenFile
             tweets <- download token
-            classes <- mapM humanClassify $ take 5 $ statuses tweets
-            liftIO $ print classes
             liftIO $ store tweets
             return tweets
 

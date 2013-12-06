@@ -15,14 +15,18 @@ Stats(..)
 , combinedProb
 , mostInteresting
 , spamScore
+, loadStats
 ) where
 
 import Control.Arrow
 import Control.Monad
+import Control.Monad.Reader
 import Data.Maybe
 import qualified Data.Map as Map
 import qualified Data.List as List
+import Database.HDBC
 import Test.QuickCheck
+import Tweet.Types
 
 randomString :: Gen String
 randomString = listOf1 randomChar
@@ -129,5 +133,16 @@ mostInteresting n wds stats = take n . List.sortBy (flip comp) $ f
         f = [(w', spamProb w' stats) | w' <-  wds]
         comp (_,p) (_,p') = compare (interestingness p) (interestingness p')
 
+-- | Calculate the probability that a set of words come from a spam message
 spamScore :: [Word] -> Stats -> Prob
 spamScore wds stats = combinedProb [p | (_,p) <- mostInteresting 5 wds stats]
+
+-- | Load the saved data into a Stats
+loadStats :: (IConnection c) => ReaderT c IO Stats
+loadStats = do
+    tweets <- loadTweets
+    let (gdTwts,bdTwts) = List.partition spam' tweets
+    return $ Stats (makeDict gdTwts) (makeDict bdTwts)
+    where
+        spam' t     = fromMaybe False $ spam t
+        makeDict    = foldr (\a b -> merge b (wordFreqs . extractWords . text $ a)) (Dict Map.empty)
